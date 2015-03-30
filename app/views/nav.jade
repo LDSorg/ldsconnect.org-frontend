@@ -13,10 +13,10 @@
           span.icon-bar
     #navbar-main.navbar-collapse.collapse(ng-class="!navCollapsed && 'in'")
       ul.nav.navbar-nav.navbar-right
-        li
-          a(ui-sref="api") API
-        li(ng-show="NC.session.accounts.length")
-          a(ui-sref="develop") Develop
+        //-li
+          a(ui-sref="api") About
+        //-li(ng-show="NC.session.accounts.length")
+          a(ui-sref="account") Account
 
         li(ng-show="!NC.session.accounts.length")
           a(href="" ng-click="NC.showLoginModal()") Login
