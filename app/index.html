@@ -72,9 +72,10 @@
               </div>
             </div>
           </div>
-          <div ng-if="!(Re.apps | filter:R.search).length">
+          <div ng-if="R.search && !(R.apps | filter:R.search).length">
             <center>
-              <p>Sorry, we don't have any apps for that yet. Are you a developer? Would you like to <a href="https://lds.io">create one</a>?</p>
+              <p class="alert alert-info">Sorry, we don't have any apps for that yet.</p>
+              Are you a developer? Would you like to <a href="https://lds.io" target="ldsio">create one</a>?
             </center>
           </div>
         </div>
@@ -85,6 +86,16 @@
       <div class="footer non-print">
         <div class="row">
           <div class="col-sm-12">
+            <center>
+              © 2015 by LDS Connect
+              <span> • </span>
+              <a target="ldsorg-main" href="https://lds.org">LDS.org</a>
+              <span> • </span>
+              <a target="ldsio-main" href="https://lds.io">Developer API</a>
+              <span> • </span>
+              <a target="ldsio-github" href="https://github.com/LDSorg">Github</a>
+            </center>
+            <br/>
             <center><span>Built with </span>
               <!--a(target="_blank", href="https://youtu.be/N-soFXDN6Ss#t=58", style="text-decoration: none;") &#x2665;-->
               <!-- a target="_blank" href="https://ldsconnect.org/vids/built-with-love" style="text-decoration: none; color: #F778A1; font-size: 1.3em;">♥</a -->
