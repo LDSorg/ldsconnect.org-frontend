@@ -1,7 +1,7 @@
 var baseUrl = localStorage.getItem('baseUrl');
 
 if (!baseUrl) {
-  baseUrl = window.location.protocol + '//' + window.location.host;
+  baseUrl = window.location.protocol + '//' + window.location.host.replace('ldsconnect.org', 'lds.io');
   //baseUrl += window.location.pathname;
 }
 console.info("baseUrl is set to '" + baseUrl + "'");
