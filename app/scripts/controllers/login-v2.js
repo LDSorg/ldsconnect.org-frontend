@@ -48,11 +48,11 @@ angular.module('yololiumApp')
       , login: scope.loginWithFacebook
       }
     , { label: 'Google+'
-      , name: 'google-plus'
+      , name: 'google'
       , faImage: ""
       , faClass: "fa-google-plus"
       , btnClass: "btn-google-plus"
-      , login: scope.loginWithGooglePlus
+      , login: scope.loginWithGoogle
       }
 
     /*
