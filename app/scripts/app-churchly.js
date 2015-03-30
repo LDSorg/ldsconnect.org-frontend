@@ -165,6 +165,12 @@ angular.module('yololiumApp', [
     }]);
 
 }]).run([ '$rootScope', '$http', 'StSession', 'LdsAccount', 'StApi', function ($rootScope, $http, StSession, LdsAccount, StApi) {
+  $rootScope.R = {};
+
+  if (/local|:\d+/.test(StApi.apiPrefix)) {
+    $rootScope.R.dev = true;
+  }
+
   // attach after angular is initialized so that angular errors
   // don't annoy developers that forgot bower install
   window.addEventListener('error', function (err) {
@@ -181,7 +187,6 @@ angular.module('yololiumApp', [
 
   $http.get(StApi.apiPrefix + '/public/apps').then(function (resp) {
     console.log(resp);
-    $rootScope.R = {};
     $rootScope.R.ready = true;
     $rootScope.R.apps = resp.data.result.filter(function (app) {
       return app.live;
