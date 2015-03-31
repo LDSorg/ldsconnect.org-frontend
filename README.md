@@ -22,14 +22,14 @@ curl -fsSL https://bit.ly/install-ldsconnect-frontend-min | bash
 -----------
 
 ```bash
-pushd lds-dev-backend
+pushd ldsconnect-static-backend
 node ./serve.js
 ```
 
 3. In a new terminal, watch jade files
 --------
 ```bash
-pushd lds-dev-backend
+pushd ldsconnect-static-backend
 jade -w ./public/views/*.jade
 ```
 
@@ -65,9 +65,9 @@ Install the Hard Way
 ```
 echo "Cloning Frontend-Developer Backend (very minimal)..."
 git clone https://github.com/LDSorg/backend-oauth2-node-passport-example.git \
-  lds-dev-backend \
+  ldsconnect-static-backend \
   > /dev/null
-pushd lds-dev-backend
+pushd ldsconnect-static-backend
 ```
 
 ```
@@ -102,7 +102,7 @@ Directory Structure
 ===================
 
 ```
-lds-dev-backend/
+ldsconnect-static-backend/
 ├── package.json
 ├── serve.js
 ├── app.js
