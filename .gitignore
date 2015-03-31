@@ -1,5 +1,7 @@
 .*.sw*
 migrations/migrations.js
+less.css
+main.css
 
 dist
 .tmp
