@@ -25,6 +25,9 @@
     <link href="styles/bootstrap-social.min.css" rel="stylesheet">
     <link href="styles/font-awesome.min.css" rel="stylesheet">
     <!-- fontawesome fonts MUST exist in ../fonts/ -->
+
+    <link href="styles/less.css" rel="stylesheet">
+
   </head>
   <body style="padding-top: 50px;" class="fade" ng-class="{ in: R.ready }">
     <!--[if lt IE 10]>
@@ -49,49 +52,52 @@
 
     <div class="ui-view-body" ui-view="body" autoscroll="false">
 
-      <div class="container" style="min-height: 800px;">
-        <br/>
-        <div class="jumbotron">
+      <div class="landing-page" style="min-height: 800px;">
+        <div class="jumbotron tac">
           <h1>This is the place!</h1>
           <p>We're strengthening the Stakes of Zion one app at a time!</p>
           <!-- TODO input search -->
         </div>
 
-        <div class="row">
-          <div class="col-xs-12">
-            <div class="input-group">
-              <span class="input-group-addon">
-                <i class="fa fa-search"></i>
-              </span>
-              <input class="form-control" type="text" placeholder="Search" ng-model="R.search"/>
-            </div>
-          </div>
-        </div>
+        <div class="container ">
 
-        <br/>
-
-        <div class="row">
-          <div ng-repeat="app in R.apps | filter:R.search" style="height: 150px;" class="pull-left col-sm-6">
-            <div class="media">
-              <div class="pull-left"><img ng-if="app.logo" ng-src="{{app.logo}}" style="width: 128px;" class="media-object"/><img ng-if="!app.logo" src="//i.imgur.com/1uZWJA4.png" style="width: 128px;" class="media-object"/></div>
-              <div class="media-body">
-                <h4 ng-bind="app.name" class="media-heading"></h4>
-                <div ng-bind="app.desc"></div><a ng-href="{{app.urls[0]}}" ng-bind="app.urls[0]" target="_blank"></a>
-                <a class="btn btn-primary pull-right" href="{{app.urls[0]}}">Launch {{ app.name }}</a>
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="input-group">
+                <span class="input-group-addon">
+                  <i class="fa fa-search"></i>
+                </span>
+                <input class="form-control" type="text" placeholder="Search" ng-model="R.search"/>
               </div>
             </div>
           </div>
-          <div ng-if="R.search && !(R.apps | filter:R.search).length">
-            <center>
-              <p class="alert alert-info">Sorry, we don't have any apps for that yet.</p>
-              Are you a developer? Would you like to <a href="https://lds.io" target="ldsio">create one</a>?
-            </center>
+
+          <br/>
+
+          <div class="row">
+            <div ng-repeat="app in R.apps | filter:R.search" style="height: 150px;" class="pull-left col-sm-6">
+              <div class="media">
+                <div class="pull-left"><img ng-if="app.logo" ng-src="{{app.logo}}" style="width: 128px;" class="media-object"/><img ng-if="!app.logo" src="//i.imgur.com/1uZWJA4.png" style="width: 128px;" class="media-object"/></div>
+                <div class="media-body">
+                  <h4 ng-bind="app.name" class="media-heading"></h4>
+                  <div class="desc" ng-bind="app.desc"></div>
+                  <a class="link" ng-href="{{app.urls[0]}}" ng-bind="app.urls[0]" target="_blank"></a> <br>
+                  <a class="btn btn-primary" href="{{app.urls[0]}}">Launch {{ app.name }}</a>
+                </div>
+              </div>
+            </div>
+            <div ng-if="R.search && !(R.apps | filter:R.search).length">
+              <center>
+                <p class="alert alert-info">Sorry, we don't have any apps for that yet.</p>
+                Are you a developer? Would you like to <a href="https://lds.io" target="ldsio">create one</a>?
+              </center>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="container">
+
+
       <div class="footer non-print">
         <div class="row">
           <div class="col-sm-12">

@@ -1,0 +1,26 @@
+.landing-page{
+  .jumbotron{
+    background: #000 url(../../images/conf-aud.jpg) no-repeat bottom center;
+    background-size: cover;
+    color: white;
+  }
+    .media-body {
+      height: 128px;
+      position: relative;
+      a{
+        display: block;
+        float: left;
+        &.link{
+          display: none;
+        }
+      }
+      .desc{
+        color: @gray;
+      }
+
+      .btn{
+        position: absolute;
+        bottom: 0;
+      }
+    }
+}
