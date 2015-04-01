@@ -14,5 +14,5 @@
     "method": "GET"
   , "url": "https://lds.io/api/ldsio/{{account_id}}/me"
   }
-, "oauthn_scope": "me"
+, "authn_scope": "me"
 }
