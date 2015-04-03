@@ -12,7 +12,7 @@
   }
 , "profile": {
     "method": "GET"
-  , "url": "https://lds.io/api/ldsio/{{account_id}}/me"
+  , "url": "https://lds.io/api/ldsio/!(account_id)/me"
   }
 , "authn_scope": "me"
 }
