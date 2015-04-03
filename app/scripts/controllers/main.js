@@ -45,7 +45,7 @@ angular.module('yololiumApp')
             + '?response_type=token'
             + '&client_id=' + lb.id
             + '&redirect_uri=' + lb.redirectUrl
-            + '&scope=' + encodeURIComponent("me:::")
+            + '&scope=' + encodeURIComponent("me")
             + '&state=' + Math.random().toString().replace(/^0./, '')
         ;
 
