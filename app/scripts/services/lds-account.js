@@ -56,7 +56,6 @@ angular.module('yololiumApp')
 
     me.ensureAccount = function (session, opts) {
       // about 3 months
-      var recheckTime = (3 * 30 * 24 * 60 * 60 * 1);
       var ldsLogins;
       var hasLdsAccount;
 
@@ -89,6 +88,19 @@ angular.module('yololiumApp')
         });
       }
 
+      return me.createAccount(session, opts);
+    };
+
+    me.verifyAccount = function (session, opts) {
+      var recheckTime = (3 * 30 * 24 * 60 * 60 * 1);
+
+      // TODO get token
+      var ldsLogins = session.logins.filter(function (login) {
+        if ('local' === login.type) {
+          return true;
+        }
+      });
+
       // if any of the logins are stale, destalinize them
       if (ldsLogins.some(function (login) {
         var fresh;
@@ -111,7 +123,7 @@ angular.module('yololiumApp')
         });
       }
 
-      return me.createAccount(session, opts);
+      return $q.when(session);
     };
 
     me.createAccount = function (session, opts) {

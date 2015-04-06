@@ -8,6 +8,8 @@ window.addEventListener('error', function (err) {
 angular.module('yololiumApp', [
   'ui.bootstrap'
 , 'ui.router'
+, 'oauth3'
+, 'lds.io'
 , 'steve'
 /*
   'ngSanitize'
@@ -89,30 +91,6 @@ angular.module('yololiumApp', [
           }
         }
       })
-
-      .state('api', {
-        url: '/api/'
-      , views: {
-          body: {
-            templateUrl: 'views/api.html'
-          }
-        }
-      })
-
-      .state('develop', {
-        url: '/develop/'
-      , views: {
-          body: {
-            templateUrl: 'views/oauthclients.html'
-          , controller: 'OauthclientsController as OA'
-          , resolve: {
-              authenticatedSession: ['StSession', function (StSession) {
-                return StSession.ensureSession();
-              }]
-            }
-          }
-        }
-      })
       ;
 
     // send creds
@@ -182,19 +160,55 @@ angular.module('yololiumApp', [
       return session;
     });
   });
-
-  StSession.restoreSession();
+  StSession.use(function (session, opts) {
+    return LdsAccount.verifyAccount(session, opts).then(function (session) {
+      return session;
+    });
+  });
 
   $http.get(StApi.apiPrefix + '/public/apps').then(function (resp) {
-    console.log(resp);
     $rootScope.R.ready = true;
     $rootScope.R.apps = resp.data.result.filter(function (app) {
       return app.live;
     });
   });
-}]);
 
-angular.module('yololiumApp')
-  .service('mySession', [function () {}])
-  .service('StPayInvoice', [function () {}])
-  ;
+  StSession.restoreSession();
+}]).run([
+    '$rootScope'
+  , '$timeout'
+  , '$q'
+  , '$modal'
+  , 'LdsApi'
+  , 'LdsApiSession'
+  , function ($rootScope, $timeout, $q, $modal, LdsApi, LdsApiSession) {
+
+  return LdsApi.init({
+    // TODO dedicated root app
+    appId: 'TEST_ID_9e78b54c44a8746a5727c972'
+  , appVersion: '2.0.0-pre'
+  , invokeLogin: function (opts) {
+      return $modal.open({
+        templateUrl: '/views/login-v3.html'
+      , controller: 'LoginController3 as LC'
+      , backdrop: 'static'
+      , keyboard: true
+      , resolve: {
+          myLoginOptions: [function () {
+            return opts;
+          }]
+        }
+      }).result;
+    }
+  }).then(function (LdsApiConfig) {
+    // normally we'd do a background login here, but ldsconnect.org already
+    // is the provider, so no sense in doing that...
+    return LdsApiSession.checkSession().then(function () {
+      $rootScope.rootReady = true;
+      $rootScope.rootDeveloperMode = LdsApiConfig.developerMode;
+    }, function () {
+      $rootScope.rootReady = true;
+      $rootScope.rootDeveloperMode = LdsApiConfig.developerMode;
+    });
+  });
+}]);

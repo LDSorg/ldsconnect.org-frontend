@@ -104,17 +104,22 @@
             <center>
               © 2015 by LDS Connect
               <span> • </span>
-              <a target="ldsorg-main" href="https://lds.org">LDS.org</a>
+              <a target="ldsorg-main" href="https://lds.org" tabindex="-1">LDS.org</a>
               <span> • </span>
-              <a target="ldsio-main" href="https://lds.io">Developer API</a>
+              <a target="ldsio-main" href="https://lds.io" tabindex="-1">Developer API</a>
               <span> • </span>
-              <a href="mailto:support@ldsconnect.org">support@ldsconnect.org</a>
+              <a href="mailto:support@ldsconnect.org"  tabindex="-1">support@ldsconnect.org</a>
             </center>
             <br/>
             <center><span>Built with </span>
               <!-- a target="_blank" href="https://ldsconnect.org/vids/built-with-love" style="text-decoration: none; color: #F778A1; font-size: 1.3em;">♥</a -->
-              <a target="_blank" href="https://www.youtube.com/watch?v=hkOnH36S_pY" style="text-decoration: none; color: #F778A1; font-size: 1.3em;">♥</a>
-              <span> by </span><a target="_blank" href="https://coolaj86.com">AJ</a><span>&nbsp;(</span><a target="_blank" href="https://AJ.the.DJ">the DJ</a><span>)</span>
+              <a
+                target="_blank"
+                href="https://www.youtube.com/watch?v=hkOnH36S_pY"
+                style="text-decoration: none; color: #F778A1; font-size: 1.3em;"
+                tabindex="-1"
+              >♥</a>
+              <span> by </span><a target="_blank" href="https://coolaj86.com" tabindex="-1">AJ</a><span>&nbsp;(</span><a target="_blank" href="https://AJ.the.DJ" tabindex="-1">the DJ</a><span>)</span>
             </center>
           </div>
         </div>
@@ -147,6 +152,7 @@
     <script src="scripts/services/st-alert.js"></script>
     <script src="scripts/controllers/alert.js"></script>
     <script src="scripts/controllers/login-v2.js"></script>
+    <script src="scripts/controllers/login-v3.js"></script>
     <script src="scripts/controllers/account-new.js"></script>
     <script src="scripts/controllers/account.js"></script>
     <script src="scripts/controllers/lds-account.js"></script>
@@ -154,6 +160,18 @@
     <script src="scripts/controllers/oauthclients.js"></script>
     <script src="scripts/controllers/oauth.js"></script>
     <script src="scripts/controllers/verify-contact-details.js"></script>
+
+    <script src="bower_components/oauth3/angular-oauth3.js"></script>
+    <!-- script src="bower_components/oauth3/angular-oauth3.min.js"></script -->
+
+    <script src="bower_components/angular-lds-io/src/lds-io-storage.js"></script>
+    <script src="bower_components/angular-lds-io/src/lds-io-config.js"></script>
+    <script src="bower_components/angular-lds-io/src/lds-io-cache.js"></script>
+    <script src="bower_components/angular-lds-io/src/lds-io-session.js"></script>
+    <script src="bower_components/angular-lds-io/src/lds-io-api.js"></script>
+    <script src="bower_components/angular-lds-io/src/lds-io.js"></script>
+    <!-- script src="bower_components/angular-lds-io/lds-io.min.js"></script -->
+
     <!-- endbuild -->
 
     <script>
