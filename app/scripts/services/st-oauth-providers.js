@@ -58,6 +58,7 @@ angular.module('yololiumApp')
           return;
         }
 
+        /*
         window.completeLogin = function (strategyName, url) {
           var err = null;
           var myLogin = allLogins[strategyName];
@@ -78,6 +79,7 @@ angular.module('yololiumApp')
           myLogin.loginWindow.close();
           delete myLogin.loginWindow;
         };
+        */
       }
       function attachCompleteLogin(strategyName, oneLogin) {
         oneLogin.strategyName = strategyName;

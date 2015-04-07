@@ -28,6 +28,9 @@ angular.module('yololiumApp')
       }
 
       return $http.get(apiPrefix + '/ldsconnect/' + account.id + '/me').then(function (result) {
+        if (!result.data) {
+          return $q.reject(new Error("could not get /me"));
+        }
         if (result.data.error) {
           return $q.reject(result.data.error);
         }

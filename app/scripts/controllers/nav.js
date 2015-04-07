@@ -11,11 +11,18 @@ angular.module('yololiumApp')
     var scope = this;
 
     function init(session) {
-      if (!session) {
+      if (!session || session.message) {
         scope.session = null;
         scope.account = null;
         scope.accounts = null;
+        return;
       }
+
+      scope.session = session;
+      scope.accounts = session.accounts;
+      scope.account = LdsApiSession.account(session);
+
+      return;
 
       return LdsApiRequest.accounts(session).then(function (accounts) {
         if (!accounts.length) {
@@ -24,7 +31,6 @@ angular.module('yololiumApp')
 
         scope.accounts = accounts;
         // TODO some method of getting the selected account
-        scope.account = accounts[0];
       }, function (err) {
         console.error(err);
         console.warn(err.stack);
@@ -45,7 +51,7 @@ angular.module('yololiumApp')
       return LdsApiSession.logout();
     };
 
-    //StSession.subscribe(updateSession, $scope);
+    LdsApiSession.checkSession().then(init, init).catch(init);
     LdsApiSession.onLogin($scope, init);
     LdsApiSession.onLogout($scope, init);
   }]);

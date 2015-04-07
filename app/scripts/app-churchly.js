@@ -130,7 +130,7 @@ angular.module('yololiumApp', [
             response.data = recase.camelCopy(response.data);
             if (response.data.error) {
               //throw new Error(response.data.error.message);
-              return $q.reject(new Error(response.data.error.message));
+              return $q.reject(new Error(response.data.error.code || response.data.error.message));
             }
           }
           return response;

@@ -6,16 +6,16 @@ angular.module('yololiumApp')
   , '$q'
   , '$timeout'
   , '$modalInstance'
-  , 'StSession'
   , 'LdsApiSession'
+  , 'LdsApiRequest'
   , 'myLoginOptions'
   , function (
       $scope
     , $q
     , $timeout
     , $modalInstance
-    , StSession
     , LdsApiSession
+    , LdsApiRequest
     , opts
     ) {
     opts = opts || {};
@@ -26,33 +26,32 @@ angular.module('yololiumApp')
 
     scope.delta = { localLogin: {} };
 
-    Object.keys(StSession.oauthProviders).forEach(function (key) {
-      var provider = StSession.oauthProviders[key];
-      var name = key.replace(/(^.)/, function ($1) { return $1.toUpperCase(); });
-
-      scope['loginWith' + name] = function () {
-        provider().then(function (session) {
-          $modalInstance.close(session);
-        }, function () {
-          scope.delta.localLogin.message = name + ' login failed.';
-        });
-      };
-    });
-
     scope.loginStrategies = [
       { label: 'Facebook'
       , name: 'facebook'
       , faImage: ""
       , faClass: "fa-facebook"
       , btnClass: "btn-facebook"
-      , login: scope.loginWithFacebook
+      , login: function () {
+          return LdsApiSession.logins.authorizationRedirect({
+            providerUri: 'facebook.com'
+          , scope: ['email'] 
+          , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
+          , popup: true
+          });
+        }
       }
     , { label: 'Google+'
       , name: 'google'
       , faImage: ""
       , faClass: "fa-google-plus"
       , btnClass: "btn-google-plus"
-      , login: scope.loginWithGoogle
+      , login: function () {
+          return LdsApiSession.authorizationRedirect({
+            providerUri: 'google.com'
+          //, scope: ['login']
+          });
+        }
       }
 
     /*
@@ -182,6 +181,8 @@ angular.module('yololiumApp')
 
     scope.submitLogin = function (nodeObj) {
       var promise;
+      scope.flashMessage = "";
+      scope.flashMessageClass = "alert-danger";
 
       if (scope._loginPromise) {
         promise = scope._loginPromise;
@@ -191,10 +192,27 @@ angular.module('yololiumApp')
 
       return promise.then(function () {
         // ALL THE SCOPES!!!
-        return LdsApiSession.logins.resourceOwnerPassword(nodeObj.node, nodeObj.secret, '*').then(function (data) {
-          // yeah... now go do something else, I guess
-          console.info(data);
-          throw new Error("not implemented");
+        scope.formState = 'authenticating';
+        return LdsApiSession.logins.resourceOwnerPassword(nodeObj.node, nodeObj.secret, '*').then(function (session) {
+          // TODO if there is not a default account, show user-switching screen
+          $modalInstance.close(session);
+        }, function (err) {
+          if (!err.message) {
+            throw err;
+          }
+
+          scope.formState = 'login';
+
+          // TODO fix server err.message / err.code
+          scope.flashMessage = err.code || err.message;
+          scope.flashMessageClass = "alert-warning";
+        }).catch(function (err) {
+          scope.formState = 'login';
+
+          console.error('[Uknown Error] resource owner password login');
+          console.warn(err);
+          scope.flashMessage = err.code || err.message || err || '[Uknown Error] could not log in';
+          scope.flashMessageClass = "alert-danger";
         });
       });
     };
@@ -207,6 +225,8 @@ angular.module('yololiumApp')
       scope.formState = 'login';
       nodeObj.claimable = false;
       nodeObj.message = '';
+      scope.flashMessage = '';
+      scope.flashMessageClass = "alert-warning";
       username = nodeObj.node;
 
       $timeout.cancel(scope._loginTimeout);
@@ -243,9 +263,12 @@ angular.module('yololiumApp')
           scope.formState = 'create';
           nodeObj.message = "'" + username + "' is available!";
         }).catch(function (err) {
+          nodeObj.message = '';
+
           scope.formState = 'login';
-          nodeObj.message = "[Uknown Error] " + err.message
+          scope.flashMessage = "[Uknown Error] " + err.message
             + " (might need to wait a minute and try again)";
+          scope.flashMessageClass = "alert-danger";
           throw err;
         });
       }, 250);
