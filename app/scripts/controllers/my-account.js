@@ -1,12 +1,14 @@
 'use strict';
 
 angular.module('yololiumApp')
-  .controller('NavController', [
+  .controller('MyAccountController', [
     '$scope'
+  , '$location'
   , '$http'
   , 'LdsApiConfig'
   , 'LdsApiSession'
-  , function ($scope, $http, LdsApiConfig, LdsApiSession) {
+  , 'LdsApiRequest'
+  , function ($scope, $location, $http, LdsApiConfig, LdsApiSession, LdsApiRequest) {
     var scope = this;
 
     function init(session) {
@@ -14,12 +16,21 @@ angular.module('yololiumApp')
         scope.session = null;
         scope.account = null;
         scope.accounts = null;
+        $location.url('/');
         return;
       }
 
       scope.session = session;
       scope.accounts = session.accounts;
       scope.account = LdsApiSession.account(session);
+
+      console.log('session', session);
+      return LdsApiRequest.profile(session).then(function (profile) {
+        console.log('profile', profile);
+        return LdsApiRequest.ward(session, profile.homeStakeAppScopedId, profile.homeWardAppScopedId).then(function (ward) {
+          console.log('ward', ward);
+        });
+      });
     }
 
     scope.showLoginModal = function () {

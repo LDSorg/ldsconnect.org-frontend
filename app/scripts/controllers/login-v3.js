@@ -38,7 +38,7 @@ angular.module('yololiumApp')
           , scope: ['email'] 
           , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
           , popup: true
-          });
+          }, handleLoginError).catch(handleLoginException);
         }
       }
     , { label: 'Google+'
@@ -82,17 +82,9 @@ angular.module('yololiumApp')
     }
 
     function onLdsLogin(ldsSession) {
-      return LdsApiRequest.profile(ldsSession).then(function (profile) {
-        return LdsApiRequest.ward(profile.homeStakeId, profile.homeWardId).then(function (ward) {
-          throw new Error("not implemented");
-        });
-      });
-    }
-
-    function onSocialLogin(session) {
-      return LdsApiRequest.getToken().then(function () {
-        throw new Error("not implemented");
-      });
+      // TODO if there is not a default account, show user-switching screen
+      // this will close both on user/pass and social login
+      $modalInstance.close(ldsSession);
     }
 
     function onLogin(session) {
@@ -179,6 +171,27 @@ angular.module('yololiumApp')
         ;
     };
 
+    function handleLoginError(err) {
+      if (!err.message) {
+        throw err;
+      }
+
+      scope.formState = 'login';
+
+      // TODO fix server err.message / err.code
+      scope.flashMessage = err.code || err.message;
+      scope.flashMessageClass = "alert-warning";
+    }
+
+    function handleLoginException(err) {
+      scope.formState = 'login';
+
+      console.error('[Uknown Error] resource owner password login');
+      console.warn(err);
+      scope.flashMessage = err.code || err.message || err || '[Uknown Error] could not log in';
+      scope.flashMessageClass = "alert-danger";
+    }
+
     scope.submitLogin = function (nodeObj) {
       var promise;
       scope.flashMessage = "";
@@ -191,29 +204,12 @@ angular.module('yololiumApp')
       }
 
       return promise.then(function () {
-        // ALL THE SCOPES!!!
+        // TODO change the state to authenticating for social logins as well
         scope.formState = 'authenticating';
+        // ALL THE SCOPES!!!
         return LdsApiSession.logins.resourceOwnerPassword(nodeObj.node, nodeObj.secret, '*').then(function (session) {
-          // TODO if there is not a default account, show user-switching screen
-          $modalInstance.close(session);
-        }, function (err) {
-          if (!err.message) {
-            throw err;
-          }
-
-          scope.formState = 'login';
-
-          // TODO fix server err.message / err.code
-          scope.flashMessage = err.code || err.message;
-          scope.flashMessageClass = "alert-warning";
-        }).catch(function (err) {
-          scope.formState = 'login';
-
-          console.error('[Uknown Error] resource owner password login');
-          console.warn(err);
-          scope.flashMessage = err.code || err.message || err || '[Uknown Error] could not log in';
-          scope.flashMessageClass = "alert-danger";
-        });
+          return session;
+        }, handleLoginError).catch(handleLoginException);
       });
     };
 
@@ -255,7 +251,9 @@ angular.module('yololiumApp')
             + ' Welcome back!'
             ;
           scope.formState = 'login';
-        }, function (err) {
+        }, function () {
+          // TODO test that error is simply not exists
+          // and not a server error
           if (myPromise !== scope._loginTimeout) {
             return;
           }
@@ -281,5 +279,5 @@ angular.module('yololiumApp')
     //
     LdsApiSession.onLogin($scope, onLdsLogin);
     LdsApiSession.onLogout($scope, onLogout);
-    LdsApiSession.checkSession().then(onLdsLogin, onLogout);
+    //LdsApiSession.checkSession().then(onLdsLogin, onLogout);
   }]);
