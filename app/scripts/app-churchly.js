@@ -162,7 +162,7 @@ angular.module('yololiumApp', [
       window.alert('Uncaught Exception: ' + (err.message || 'unknown error'));
     });
 
-    $http.get(LdsApiConfig.providerUri + '/public/apps').then(function (resp) {
+    $http.get(LdsApiConfig.providerUri + '/api' + '/public/apps').then(function (resp) {
       $rootScope.R.ready = true;
       $rootScope.R.apps = resp.data.result.filter(function (app) {
         return app.live;
