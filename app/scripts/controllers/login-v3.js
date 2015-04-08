@@ -47,7 +47,7 @@ angular.module('yololiumApp')
       , faClass: "fa-google-plus"
       , btnClass: "btn-google-plus"
       , login: function () {
-          return LdsApiSession.authorizationRedirect({
+          return LdsApiSession.logins.authorizationRedirect({
             providerUri: 'google.com'
           , scope: [ 'https://www.googleapis.com/auth/plus.login' ]
           , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
