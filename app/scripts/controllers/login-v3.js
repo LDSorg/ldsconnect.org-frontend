@@ -21,7 +21,7 @@ angular.module('yololiumApp')
     opts = opts || {};
     var scope = this;
     var secretMinLen = LdsApiSession.secretMinLength;
-    var usernameMinLen = LdsApiSession.usernameMinLength;
+    //var usernameMinLen = LdsApiSession.usernameMinLength;
     var mySession;
 
     scope.delta = { localLogin: {} };
@@ -35,7 +35,7 @@ angular.module('yololiumApp')
       , login: function () {
           return LdsApiSession.logins.authorizationRedirect({
             providerUri: 'facebook.com'
-          , scope: ['email'] 
+          , scope: [ 'email' ] 
           , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
           , popup: true
           }, handleLoginError).catch(handleLoginException);
@@ -49,8 +49,10 @@ angular.module('yololiumApp')
       , login: function () {
           return LdsApiSession.authorizationRedirect({
             providerUri: 'google.com'
-          //, scope: ['login']
-          });
+          , scope: [ 'https://www.googleapis.com/auth/plus.login' ]
+          , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
+          , popup: true
+          }, handleLoginError).catch(handleLoginException);
         }
       }
 
@@ -280,4 +282,8 @@ angular.module('yololiumApp')
     LdsApiSession.onLogin($scope, onLdsLogin);
     LdsApiSession.onLogout($scope, onLogout);
     //LdsApiSession.checkSession().then(onLdsLogin, onLogout);
+    if (false) {
+      // prevent lint warnings until I figure out how I'll use this
+      onLogin();
+    }
   }]);
