@@ -8,6 +8,7 @@ angular.module('yololiumApp')
   , '$modalInstance'
   , 'LdsApiSession'
   , 'LdsApiRequest'
+  , 'LdsAccount'
   , 'myLoginOptions'
   , function (
       $scope
@@ -16,6 +17,7 @@ angular.module('yololiumApp')
     , $modalInstance
     , LdsApiSession
     , LdsApiRequest
+    , LdsAccount
     , opts
     ) {
     opts = opts || {};
@@ -24,7 +26,23 @@ angular.module('yololiumApp')
     //var usernameMinLen = LdsApiSession.usernameMinLength;
     var mySession;
 
+    scope.hideSocial = opts.hideSocial;
+    scope.flashMessage = opts.flashMessage;
+    scope.flashMessageClass = opts.flashMessageClass;
+
     scope.delta = { localLogin: {} };
+
+    function handleSuccess(session) {
+      LdsApiSession.requireAccount(session).then(onLdsLogin, function (err) {
+        if ('E_NO_LDSACCOUNT' !== err.code) {
+          throw err;
+        }
+
+        scope.hideSocial = true;
+        scope.flashMessage = err.message;
+        scope.flashMessageClass = "alert-warning";
+      }).catch(handleLoginException);
+    }
 
     scope.loginStrategies = [
       { label: 'Facebook'
@@ -38,7 +56,7 @@ angular.module('yololiumApp')
           , scope: [ 'email' ] 
           , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
           , popup: true
-          }, handleLoginError).catch(handleLoginException);
+          }).then(handleSuccess, handleLoginError).catch(handleLoginException);
         }
       }
     , { label: 'Google+'
@@ -52,7 +70,7 @@ angular.module('yololiumApp')
           , scope: [ 'https://www.googleapis.com/auth/plus.login' ]
           , redirectUri: 'https://beta.ldsconnect.org/oauth3.html'
           , popup: true
-          }, handleLoginError).catch(handleLoginException);
+          }).then(handleSuccess, handleLoginError).catch(handleLoginException);
         }
       }
 
@@ -84,9 +102,17 @@ angular.module('yololiumApp')
     }
 
     function onLdsLogin(ldsSession) {
+      console.log('onLdsLogin');
       // TODO if there is not a default account, show user-switching screen
       // this will close both on user/pass and social login
-      $modalInstance.close(ldsSession);
+      return LdsApiRequest.profile(ldsSession).then(function (profile) {
+        console.log('profile');
+        console.log(profile);
+        return LdsAccount.verifyAccount(ldsSession, profile).then(function () {
+          console.log('verifiedAccount');
+          $modalInstance.close(ldsSession);
+        });
+      });
     }
 
     function onLogin(session) {
@@ -174,6 +200,9 @@ angular.module('yololiumApp')
     };
 
     function handleLoginError(err) {
+      console.error('handleLoginError');
+      console.error(err);
+      console.warn(err.stack);
       if (!err.message) {
         throw err;
       }
@@ -183,12 +212,14 @@ angular.module('yololiumApp')
       // TODO fix server err.message / err.code
       scope.flashMessage = err.code || err.message;
       scope.flashMessageClass = "alert-warning";
+
+      throw err;
     }
 
     function handleLoginException(err) {
       scope.formState = 'login';
 
-      console.error('[Uknown Error] resource owner password login');
+      console.error("[Uknown Error] Either 'resource owner password' or 'delegated' login");
       console.warn(err);
       scope.flashMessage = err.code || err.message || err || '[Uknown Error] could not log in';
       scope.flashMessageClass = "alert-danger";
@@ -210,7 +241,7 @@ angular.module('yololiumApp')
         scope.formState = 'authenticating';
         // ALL THE SCOPES!!!
         return LdsApiSession.logins.resourceOwnerPassword(nodeObj.node, nodeObj.secret, '*').then(function (session) {
-          return session;
+          return LdsApiSession.requireAccount(session).then(onLdsLogin);
         }, handleLoginError).catch(handleLoginException);
       });
     };
@@ -279,7 +310,7 @@ angular.module('yololiumApp')
     //
     // Begin
     //
-    LdsApiSession.onLogin($scope, onLdsLogin);
+    //LdsApiSession.onLogin($scope, onLdsLogin);
     LdsApiSession.onLogout($scope, onLogout);
     //LdsApiSession.checkSession().then(onLdsLogin, onLogout);
     if (false) {

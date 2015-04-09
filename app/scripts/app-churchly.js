@@ -107,6 +107,7 @@ angular.module('yololiumApp', [
         }
       , 'response': function (response) {
           var config = response.config;
+          var err;
 
           // our own API is snake_case (to match webApi / ruby convention)
           // but we convert to camelCase for javascript convention
@@ -114,7 +115,11 @@ angular.module('yololiumApp', [
             response.data = recase.camelCopy(response.data);
             if (response.data.error) {
               //throw new Error(response.data.error.message);
-              return $q.reject(new Error(response.data.error.code || response.data.error.message));
+              err = new Error(response.data.error.message);
+              Object.keys(response.data.error).forEach(function (key) {
+                err[key] = response.data.error[key];
+              });
+              return $q.reject(err);
             }
           }
           return response;
@@ -122,7 +127,6 @@ angular.module('yololiumApp', [
       , 'responseError': function (rejection) {
           return rejection;
         }
-
       };
     }]);
 
@@ -142,6 +146,7 @@ angular.module('yololiumApp', [
   //  appId: 'ID__329d57138a2ddbe291eea77780fe'
   , appVersion: '2.0.0-pre'
   , invokeLogin: function (opts) {
+      console.info('login invoked');
       return $modal.open({
         templateUrl: '/views/login-v3.html'
       , controller: 'LoginController3 as LC'

@@ -6,7 +6,6 @@ angular.module('yololiumApp')
   , '$q'
   , '$modalInstance'
   , 'myLdsAccount'
-  , 'ldsAccountConfig'
   , 'ldsAccountObject'
   , 'ldsAccountOptions'
   , function (
@@ -14,7 +13,6 @@ angular.module('yololiumApp')
   , $q
   , $modalInstance
   , myLdsAccount
-  , ldsAccountConfig
   , account
     /*
   , opts

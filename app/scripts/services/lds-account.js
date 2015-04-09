@@ -12,38 +12,12 @@ angular.module('yololiumApp')
     '$q'
   , '$http'
   , '$modal'
-  , 'StApi'
-  , 'StLogin'
-  , 'StAccount'
-  , function LdsAccount($q, $http, $modal, StApi, StLogin, StAccount) {
+  , 'LdsApiConfig'
+  , 'LdsApiRequest'
+  , function LdsAccount($q, $http, $modal, LdsApiConfig, LdsApiRequest) {
     // AngularJS will instantiate a singleton by calling "new" on this function
 
     var me = this;
-    var config = StApi.loginConfig;
-    var apiPrefix = StApi.apiPrefix;
-
-    me.showAccountModal = function (session, opts) {
-      return $modal.open({
-        templateUrl: '/views/lds-account.html'
-      , controller: 'LdsAccountController as LAC'
-      , backdrop: 'static'
-      , keyboard: false
-      , resolve: {
-          myLdsAccount: function () {
-            return me;
-          }
-        , ldsAccountSession: function () {
-            return session;
-          }
-        , ldsAccountOptions: function () {
-            return opts;
-          }
-        , ldsAccountConfig: function () {
-            return config;
-          }
-        }
-      }).result;
-    };
 
     /*
     function getWardClerkInfo(session, opts) {
@@ -54,168 +28,72 @@ angular.module('yololiumApp')
     }
     */
 
-    me.ensureAccount = function (session, opts) {
-      // about 3 months
-      var ldsLogins;
-      var hasLdsAccount;
-
-      // the server must reject account creation with no local login present
-      // TODO inspect account for freshness / validation?
-      session.logins.some(function (login) {
-        if (login.accounts.length) {
-          hasLdsAccount = true;
-          return true;
+    me.showVerificationModal = function (account, opts) {
+      return $modal.open({
+        templateUrl: '/views/verify-contact-details.html'
+      , controller: 'VerifyContactDetailsController as VCDC'
+      , backdrop: 'static'
+      , keyboard: false
+      , resolve: {
+          myLdsAccount: function () {
+            return me;
+          }
+        , ldsAccountObject: function () {
+            return account;
+          }
+        , ldsAccountOptions: function () {
+            return opts;
+          }
         }
-      });
-
-      // if there isn't an account associated with a current login
-      // go back to the login step
-      ldsLogins = session.logins.filter(function (login) {
-        if ('local' === login.type) {
-          return true;
-        }
-      });
-
-      if (!ldsLogins.length && !hasLdsAccount) {
-        opts.hideSocial = true;
-        opts.flashMessage = "Login with your LDS Account at least once before linking other accounts.";
-        opts.flashMessageClass = "alert-warning";
-        return StLogin.showLoginModal(session, opts).then(function (session) {
-          opts.hideSocial = undefined;
-          opts.flashMessage = undefined;
-          opts.flashMessageClass = undefined;
-          return me.ensureAccount(session, opts);
-        });
-      }
-
-      return me.createAccount(session, opts);
+      }).result;
     };
 
-    me.verifyAccount = function (session, opts) {
+    me.showAccountModal = function (session, profile, opts) {
+      return LdsApiRequest.profile(session).then(function () {
+        return $modal.open({
+          templateUrl: '/views/lds-account.html'
+        , controller: 'LdsAccountController as LAC'
+        , backdrop: 'static'
+        , keyboard: false
+        , resolve: {
+            realLdsAccount: function () {
+              return me;
+            }
+          , mySession: function () {
+              return session;
+            }
+          , myProfile: function () {
+              return profile;
+            }
+          , myOptions: function () {
+              return opts;
+            }
+          }
+        }).result;
+      });
+    };
+
+    me.verifyAccount = function (account, profile, opts) {
       var recheckTime = (3 * 30 * 24 * 60 * 60 * 1);
 
-      // TODO get token
-      var ldsLogins = session.logins.filter(function (login) {
-        if ('local' === login.type) {
-          return true;
-        }
-      });
-
-      // if any of the logins are stale, destalinize them
-      if (ldsLogins.some(function (login) {
-        var fresh;
-        
-        if ('local' !== login.type) {
-          return false;
-        }
-
-        // TODO ISO timestamps
-        fresh = (Date.now()/1000) - parseInt(login.checkedAt||0, 10) < recheckTime;
-        //fresh = (Date.now()/1000) - parseInt(login.verifiedAt||0, 10) < recheckTime;
-        if (!fresh) {
-          opts.ldsStaleLoginInfo = login;
-          return true;
-        }
-      })) {
-        // ask the user to re-verify their info
-        return me.showAccountModal(session, opts).then(function () {
-          return me.ensureAccount(session, opts);
-        });
+      var fresh;
+      
+      // TODO ISO timestamps
+      fresh = (Date.now()/1000) - parseInt(account.checkedAt||0, 10) < recheckTime;
+      if (fresh) {
+        return $q.when(account);
       }
 
-      return $q.when(session);
-    };
-
-    me.createAccount = function (session, opts) {
-      // TODO this could change to allow for a bishop having
-      // separate accounts for home ward/stake and serving ward/stake
-
-      var logins;
-      var ldsLogins;
-      var ldsAccounts = session.accounts;
-      // this should never happen, in theory, just a sanity check
-      var hasCorruptAccount;
-      var incompleteLdsLogins = {};
-      var incompleteLogins = {};
-      var promise;
-
-      ldsLogins = session.logins.filter(function (login) {
-        return 'local' === login.type;
+      //opts.ldsStaleLoginInfo = login;
+      //return true;
+      // ask the user to re-verify their info
+      return me.showAccountModal(account, profile, opts).then(function () {
+        return me.verifyAccount(account, profile, opts);
       });
-      logins = session.logins.filter(function (login) {
-        return 'local' !== login.type;
-      });
-
-      // ensure that each ldsLogin has exactly one account
-      // (This is just a sanity check. The server guarantees this condition.)
-      ldsLogins.forEach(function (login) {
-        if (login.accounts.length < 1) {
-          incompleteLdsLogins[login.id] = { id: login.id, type: login.type };
-        }
-        if (login.accounts.length > 1) {
-          // TODO automatic failure condition reporting
-          hasCorruptAccount = true;
-        }
-      });
-
-      logins.forEach(function (login) {
-        if (login.accounts.length < 1) {
-          incompleteLogins[login.id] = { id: login.id, type: login.type };
-        }
-        // NOTE: Unlike the scenario above, multiple Lds Accounts
-        // can be linked to a single non-lds login.
-      });
-
-      ldsAccounts.forEach(function (account) {
-        var logins = account.logins.filter(function (login) {
-          if ('local' === login.provider) {
-            return true;
-          }
-        });
-        // (This is just a sanity check. The server guarantees this condition.)
-        if (logins.length < 1) {
-          hasCorruptAccount = true;
-        }
-        if (logins.length > 1) {
-          hasCorruptAccount = true;
-        }
-      });
-
-      if (hasCorruptAccount) {
-        // TODO give the user the option to delete the accounts
-        // (which would make it impossible to access those accounts on apps)
-        // (... unless the id were deterministic... hmm....)
-        return $q.reject(new Error("Your account has become corrupted and must be recovered manually."
-          + " It's not your fault. It's just a thing that happened. Please contact support@ldsconnect.org."));
-      }
-
-      if (Object.keys(incompleteLdsLogins).length > 1 && Object.keys(incompleteLogins).length) {
-        return $q.reject(new Error("You have logged into 2 or more LDS Accounts and are associating another"
-          + " login (such as Facebook or Google+), which is not yet supported."
-          + " Please log out and then log back in with only the LDS Account you wish to associate with the social login."
-          + " TODO: ask the user which social account should be linked to which LDS Account."));
-      }
-
-      // NOTE: it would be a bad idea to run these async
-      promise = $q.when(session);
-      Object.keys(incompleteLdsLogins).map(function (key) {
-        var login = incompleteLdsLogins[key];
-        // NOTE: see condition above, which prevents linking all social logins to all accounts
-        var otherLogins = Object.keys(incompleteLogins).map(function (k) { return incompleteLogins[k]; });
-
-        promise = promise.then(function () {
-          // TODO reverse accounts so that the empty object is optional
-          return StAccount.create({}, [login].concat(otherLogins), opts);
-        });
-      });
-
-      // ensure that no ldsAccount has more than one ldsLogin
-      // using PromiseA.all instead of forEachAsync because of the limited and finite nature of the list
-      return promise;
     };
 
     me.getCode = function (account, type, node) {
-      return $http.post(apiPrefix + '/ldsconnect/' + account.id + '/verify/code', {
+      return $http.post(LdsApiConfig.providerUri + '/api/ldsio/' + account.id + '/verify/code', {
         type: type
       , node: node
       }).then(function (result) {
@@ -227,7 +105,7 @@ angular.module('yololiumApp')
     };
 
     me.validateCode = function (account, type, node, uuid, code) {
-      return $http.post(apiPrefix + '/ldsconnect/' + account.id + '/verify/code/validate', {
+      return $http.post(LdsApiConfig.providerUri + '/api/ldsio/' + account.id + '/verify/code/validate', {
         type: type
       , node: node
       , uuid: uuid
@@ -249,29 +127,6 @@ angular.module('yololiumApp')
       var fresh = date && (now - date < staleTime);
 
       return fresh;
-    };
-
-    me.showVerificationModal = function (account, opts) {
-      return $modal.open({
-        templateUrl: '/views/verify-contact-details.html'
-      , controller: 'VerifyContactDetailsController as VCDC'
-      , backdrop: 'static'
-      , keyboard: false
-      , resolve: {
-          myLdsAccount: function () {
-            return me;
-          }
-        , ldsAccountObject: function () {
-            return account;
-          }
-        , ldsAccountOptions: function () {
-            return opts;
-          }
-        , ldsAccountConfig: function () {
-            return config;
-          }
-        }
-      }).result;
     };
 
     me.ensureVerified = function (account, opts) {

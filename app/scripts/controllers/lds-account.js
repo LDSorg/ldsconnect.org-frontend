@@ -7,40 +7,48 @@ angular.module('yololiumApp')
   , '$timeout'
   , '$http'
   , '$modalInstance'
-  , 'StApi'
-  , 'StSession'
-  , 'myLdsAccount'
-  , 'ldsAccountConfig'
-  , 'ldsAccountSession'
-  , 'ldsAccountOptions'
+  , 'realLdsAccount'
+  , 'LdsApiConfig'
+  , 'LdsApiSession'
+  , 'mySession'
+  , 'myProfile'
+  , 'myOptions'
   , function (
       $scope
     , $q
     , $timeout
     , $http
     , $modalInstance
-    , StApi
-    , StSession
-    , myLdsAccount
-    , ldsAccountConfig
-    , ldsAccountSession
-    , ldsAccountOptions
+    , LdsAccount // prevent circular reference
+    , LdsApiConfig
+    , LdsApiSession
+    , account // session doubles as account
+    , profile
+    //, opts
     ) {
     var scope = this;
-    var login = ldsAccountOptions.ldsStaleLoginInfo;
 
-    scope.login = login;
+    scope.me = profile.me;
+    scope.leaders = profile.leaders;
+    scope.home = profile.home;
+    scope.ward = profile.ward;
+    scope.stake = profile.stake;
+    scope.meetinghouse = profile.ward.meetinghouse;
+
+    console.log("profile", profile);
 
     scope.markAsChecked = function () {
-      return $http.post(StApi.apiPrefix + '/logins/ldsaccount/' + login.id + '/mark-as-checked').then(function (resp) {
+      return $http.post(LdsApiConfig.providerUri + '/api/ldsio/' + account.id + '/mark-as-checked').then(function (resp) {
         if (!resp.data || resp.data.error || !resp.data.success) {
           scope.flashMessage = (resp.data && resp.data.error) || "Failed to mark account as checked.";
           scope.flashMessageClass = 'alert-danger';
           return;
         }
 
-        login.checkedAt = parseInt(Date.now() / 1000, 10);
-        return $modalInstance.close(ldsAccountSession);
+        account.checkedAt = parseInt(Date.now() / 1000, 10);
+
+        // pass back anything?
+        return $modalInstance.close();
       });
     };
   }]);

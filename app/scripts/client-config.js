@@ -1,1 +1,1 @@
-client-config.sample.js
+client-config.production.js
