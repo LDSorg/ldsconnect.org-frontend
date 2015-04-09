@@ -1,0 +1,100 @@
+/*------------------------------------*\
+*
+*  FOR GIVING APPS PERMISSION TO USE
+*  YOUR ACCOUNT INFORMATION
+*
+\*------------------------------------*/
+
+.authorization-dialog{
+  background-color: white;
+  min-height: 600px;
+
+
+  .authorization-card{
+    width: 320px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 5px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .agents{
+
+  }
+
+  .agent{
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    margin-bottom: 20px;
+    float: left;
+    img{
+      display: block;
+      width: 100%;
+      margin: 0 auto 10px;
+    }
+    span{ color: @gray;}
+  }
+
+  .choose-account{
+    height: 30px;
+    margin-bottom: 20px;
+  }
+
+  .app-name{
+    color: @blue
+  }
+
+  .permission-request{
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 20px;
+    clear: both;
+  }
+
+  .permission-list{
+    text-align: left;
+    padding-left: 15px;
+    font-size: 14px;
+    margin-top: 10px;
+    .checkbox{
+      min-height: 0;
+      padding: 0;
+    }
+  }
+
+  .actions{
+    .btn{
+      margin-left: 10px;
+      &:first-child{
+        margin-left: 0;
+      }
+    }
+  }
+
+// Pads and larger phones
+@media only screen and (min-width: @small-screen ) {
+  background-color: @gray-light;
+  padding: 50px;
+}
+
+// Larger pads
+@media only screen and (min-width: @medium-screen ) {
+
+}
+
+// Horizontal pads and laptops
+@media only screen and (min-width: 992px) {
+
+}
+
+// Really large screens
+@media only screen and (min-width: @large-screen ) {
+
+}
+
+
+}
