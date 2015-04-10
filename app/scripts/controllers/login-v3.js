@@ -106,10 +106,14 @@ angular.module('yololiumApp')
       console.log(ldsSession);
       // TODO if there is not a default account, show user-switching screen
       // this will close both on user/pass and social login
+      scope.flashMessage = "You've logged in. Please wait while we download some ward and stake data...";
+      scope.flashMessageClass = 'alert-info';
       return LdsApiRequest.profile(ldsSession).then(function (profile) {
         console.log('profile');
         console.log(profile);
         return LdsAccount.verifyAccount(ldsSession, profile).then(function () {
+          scope.flashMessage = "Done!";
+          scope.flashMessageClass = 'alert-success';
           console.log('verifiedAccount');
           $modalInstance.close(ldsSession);
         });

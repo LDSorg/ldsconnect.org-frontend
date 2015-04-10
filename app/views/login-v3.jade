@@ -156,7 +156,7 @@
             button(
               type="button"
               ng-click="strategy.login()"
-              ng-disabled="LC.authenticating"
+              ng-disabled="'authenticating' === LC.formState"
               ng-attr-tabindex="{{ $index + 5 }}"
               ng-class="[ 'btn', 'btn-block', 'btn-social', strategy.btnClass ]"
             )

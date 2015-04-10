@@ -74,12 +74,11 @@ angular.module('yololiumApp')
     };
 
     me.verifyAccount = function (account, profile, opts) {
-      var recheckTime = (3 * 30 * 24 * 60 * 60 * 1);
+      var recheckTime = (3 * 30 * 24 * 60 * 60 * 1000);
 
       var fresh;
       
       // TODO ISO timestamps
-      console.log('the account > account', account);
       fresh = Date.now() - (new Date(account.userVerifiedAt).valueOf()) < recheckTime;
       if (fresh) {
         return $q.when(account);

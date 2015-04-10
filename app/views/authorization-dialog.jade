@@ -1,10 +1,20 @@
+form.js-hack-hidden-form(
+  method="POST"
+  action="https://beta.lds.io/api/oauth3/authorization_decision"
+)
+  //- TODO auto-update on change
+  input(type="hidden" name="access_token" ng-value="ADC.selectedAccount.token")
+  input(type="hidden" name="transaction_id" ng-value="ADC.transactionId")
+  input(type="hidden" name="accepted_scope" ng-value="ADC.acceptedString")
+  input(type="hidden" name="granted_scope" ng-value="ADC.grantedString")
+  input(type="hidden" name="pending_scope" ng-value="ADC.pendingString")
+  input(ng-if="ADC.cancelHack" type="hidden" name="cancel" ng-value="'true'")
+  input(type="hidden" name="selected_account_id" ng-value="ADC.selectedAccountId")
+
 .authorization-dialog
   .authorization-card
     //- this needs to actually POST so that it can issue the redirect immediately
-    form#oauth-hack-submit.form-horizontal(
-      method="POST"
-      action="https://beta.lds.io/api/oauth3/authorization_decision"
-    )
+    div.form-horizontal
       div(ng-if="ADC.error.message")
         .alert.alert-danger {{ ADC.error.message }}
         .alert.alert-danger
@@ -18,64 +28,59 @@
               pre
                 code {{ invalid | json }}
 
-      //- TODO auto-update on change
-      input(type="hidden" name="transaction_id" ng-value="ADC.transactionId")
-      input(type="hidden" name="accepted_scope" ng-value="ADC.acceptedString")
-      input(type="hidden" name="granted_scope" ng-value="ADC.grantedString")
-      input(type="hidden" name="pending_scope" ng-value="ADC.pendingString")
-      input(type="hidden" name="selected_account_id" ng-value="ADC.selectedAccountId")
       .form-group.mar0
         div.agents
           .col-xs-6.agent
-            img(ng-src="{{ ADC.selectedAccount.avatar || '/images/avatar-64px.png' }}")
-            .form-group(ng-if="ADC.accounts.length > 1")
-            span {{ ADC.selectedAccount.displayName || 'Johnny Errororeaefefsa' }}
+            img(ng-src="{{ ADC.account.photo || '/images/avatar-64px.png' }}")
+            span {{ ADC.account.name || 'Fetching User...' }}
 
           .col-xs-6.agent
             img(ng-src="{{ ADC.client.logo || '/images/app-icon-64px.png' }}")
-            span {{ ADC.client.title || 'Error: No App Title' }}
+            span {{ ADC.client.title || 'Fetching App...' }}
 
 
         select.form-control.choose-account(
-          ng-model="ADC.selectedAccount"
-          ng-options="acc as acc.displayName for acc in ADC.accounts"
-          ng-change="ADC.updateScope()"
-          ng-if="ADC.accounts.length>1"
+          ng-model="ADC.account"
+          ng-options="acc as acc.name for acc in ADC.accounts"
+          ng-change="ADC.chooseAccount(ADC.account)"
+          ng-if="ADC.accounts.length >= 2"
         )
-        div(ng-if="!ADC.pendingScope.length")
+        div(ng-if="ADC.client")
+          div(ng-if="ADC.grantedScope.length || ADC.pendingScope.length")
+            div.permission-request
+              | You'll love&#32;
+              span.app-name {{ ADC.client.title || "App Name" }}
+              br 
+              | &#32; because it can help you...
+              ul.permission-list
+                .checkbox(ng-repeat="scope in ADC.grantedScope")
+                  label
+                    input(
+                      checked="checked"
+                      disabled="disabled"
+                      type="checkbox"
+                    )
+                    | {{ scope.desc || scope.name }}
+                .checkbox(ng-repeat="scope in ADC.pendingScope")
+                  label
+                    input(
+                      ng-change="ADC.updateScope()"
+                      ng-model="scope.accepted"
+                      ng-disabled="scope.submitting || !scope.acceptable"
+                      type="checkbox"
+                    )
+                    | {{ scope.desc || scope.name }}
+
+          div(ng-if="!ADC.requestedString.length && !ADC.grantedString.length")
+            div.permission-request
+              span You can sign in to &#32;
+              span.app-name {{ ADC.client.title || "App Name" }}.
+              br
+              span No member data will be shared.
+
+        div(ng-if="!ADC.client")
           div.permission-request
-            span.app-name{{ ADC.appName || "App Name" }}
-            |&nbsp;is great because it will have the power to:
-            ul.permission-list
-              .checkbox
-                label
-                  input(type="checkbox")
-                  | send scheduled reminders
-              .checkbox
-                label
-                  input(type="checkbox")
-                  | view and use your contact list
-              .checkbox
-                label
-                  input(type="checkbox")
-                  | update your profile information
-
-
-        div(ng-if="ADC.pendingScope.length")
-          div.permission-request
-            span.app-name{{ ADC.appName || "App Name" }}
-            |&nbsp;will verify that you have an LDS account but doesn't gain access to any of your information.  That means no spam, and no spying on your info.  It's pretty safe :)
-
-        .col-xs-12(ng-if="ADC.pendingScope.length")
-          .checkbox(ng-repeat="scope in ADC.pendingScope")
-            label
-              input(
-                ng-change="ADC.updateScope()"
-                ng-model="scope.accepted"
-                ng-disabled="!scope.acceptable"
-                type="checkbox"
-              )
-              |  {{ scope.name }}
+            span Checking Permissions...
 
         .col-xs-12(ng-if="ADC.iframe")
           .alert.alert-danger
@@ -83,14 +88,29 @@
             p If you supply no scope, or the scope has already been granted, you will receive a token.
             p Otherwise the error callback will be called.
 
-        .form-group.actions(ng-if="!ADC.iframe")
-          input#hack-cancel.btn.btn-default(
-            name="cancel"
-            value="Reject"
-            type="submit"
-            ng-disabled="ADC.invalids.length || ADC.error"
-          )
-          button.btn.btn-primary(
-            type="submit"
-            ng-disabled="ADC.invalids.length || ADC.error"
+        form.form-group.actions(ng-show="!ADC.iframe")
+          button.js-hack-reject.btn.btn-default(
+            type="button"
+            ng-click="ADC.hackFormSubmit({ allow: false })"
+            ng-disabled="ADC.submitting || !ADC.account || !ADC.client || ADC.invalids.length || ADC.error"
+          ) Reject
+          button.js-hack-allow.btn.btn-primary(
+            type="button"
+            ng-click="ADC.hackFormSubmit({ allow: true })"
+            ng-disabled="ADC.submitting || !ADC.account || !ADC.client || ADC.invalids.length || ADC.error"
           ) Yes, Allow
+        div
+          br
+        div
+          br
+        div
+          br
+        div
+          small.help-block
+            span * In accordance with the LDS.org Privacy Policy, apps may <strong>not</strong>
+            span &#32; store any member data. The data is delivered directly to your browser only.
+            br
+            br
+            span If you believe an app is violating this policy, please report it to &#32;
+            a(href="mailto:abuse@ldsconnect.org") abuse@ldsconnect.org
+            span .

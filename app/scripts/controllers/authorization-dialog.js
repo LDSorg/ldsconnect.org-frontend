@@ -11,24 +11,32 @@ angular.module('yololiumApp')
   .controller('AuthorizationDialogController', [ 
     '$window'
   , '$location'
+  , '$stateParams'
   , '$q'
   , '$timeout'
   , '$scope'
   , '$http'
-  , '$stateParams'
-  , 'StSession'
-  , 'StApi'
+  , 'LdsApiConfig'
+  , 'LdsApiSession'
+  , 'LdsApiRequest'
   , function (
       $window
     , $location
+    , $stateParams
     , $q
     , $timeout
     , $scope
     , $http
-    , $stateParams
-    , StSession
-    , StApi
+    , LdsApiConfig
+    , LdsApiSession
+    , LdsApiRequest
     ) {
+    ['log', 'warn', 'info', 'error'].forEach(function (key) {
+      console['old-' + key] = console[key];
+      console[key] = function (msg) {
+        console['old-' + key]('[ldsconnect.org] [authorization-dialog] ' + msg);
+      };
+    });
 
     var scope = this;
 
@@ -64,39 +72,17 @@ angular.module('yololiumApp')
       };
     }
 
-    // Convert all scope changes back to a scope string
-    scope.updateScope = function () {
-      if (true === scope.selectedAccount.new) {
-        scope.selectedAccount = scope.previousAccount;
-        setTimeout(function () {
-          window.alert("this feature is not yet implemented");
-        }, 0);
-
-        return;
-      }
-
-      scope.previousAccount = scope.selectedAccount;
-
-      scope.selectedAccountId =
-        scope.selectedAccount.id || scope.selectedAccount.uuid;
-
-      if (scope.selectedAccountId === scope.previousAccount.id) {
-        return;
-      }
-
-      // we're switching the accounts
-      selectAccount(scope.selectedAccountId).then(function (/*txdata*/) {
-        updateAccepted();
-        // TODO Recheck which scopes have already been accepted for this account
-      });
-    };
-
-    function requestSelectedAccount(accountId) {
+    function requestSelectedAccount(account) {
       return $http.get(
-        StApi.oauthPrefix
-      + '/scope/' + $stateParams.token
-      + '?account=' +  accountId
+        LdsApiConfig.providerUri + '/api/oauth3'
+          + '/scope/' + $stateParams.token
+          + '?account=' +  account.accountId
+      , { headers: { Authorization: "Bearer " + account.token } }
       ).then(function (resp) {
+        if (!resp.data) {
+          throw new Error("[Uknown Error] got no response (not even an error)");
+        }
+
         if (resp.data.error) {
           console.error('resp.data');
           console.log(resp.data);
@@ -118,80 +104,48 @@ angular.module('yololiumApp')
       });
     }
 
-    function selectAccount(accountId) {
-      return requestSelectedAccount(accountId).then(function (txdata) {
+    scope.chooseAccount = function (/*profile*/) {
+      $window.alert("user switching not yet implemented");
+    };
+    scope.updateScope = function () {
+      updateAccepted();
+    };
+
+    function getAccountPermissions(account) {
+      return requestSelectedAccount(account).then(function (txdata) {
         scope.client = txdata.client;
 
         if (!scope.client.title) {
           scope.client.title = scope.client.name || 'Missing App Title';
         }
 
-        scope.selectedAccountId = accountId;
+        scope.selectedAccountId = account.accountId;
         scope.transactionId = txdata.transactionId;
-        scope.grantedString = txdata.grantedString;
-        scope.requestedString = txdata.requestedString;
-        scope.pendingString = txdata.pendingString;
+        // todo fix trimming on server
+        scope.grantedString = (txdata.grantedString || '').trim();
+        scope.grantedArr = scope.grantedString.split(/[\s,]+/);
+        scope.requestedString = (txdata.requestedString || '').trim();
+        scope.pendingString = (txdata.pendingString || '').trim();
         scope.pendingScope = [];
 
+        scope.grantedScope = scope.grantedArr.map(scopeStrToObj);
         if (scope.pendingString) {
-          scope.pendingScope = txdata.pendingArr.map(scopeStrToObj);
-        } else if (txdata.granted) {
-          // TODO submit form with getElementById or whatever
-          $timeout(function () {
-            // NOTE needs time for angular to set transactionId
-            if (!$window._gone) {
-              $window.jQuery('#oauth-hack-submit').submit();
-              $window._gone = true;
+          scope.pendingScope = txdata.pendingArr.filter(function (value) {
+            if ('!' !== value) {
+              return true;
             }
-          }, 50);
+          }).map(scopeStrToObj);
+        } else if (txdata.granted) {
+          scope.hackFormSubmit({ allow: true });
         }
 
         if (scope.iframe && (!txdata.granted || scope.pendingString)) {
-          $timeout(function () {
-            // NOTE needs time for angular to set transactionId
-            if (!$window._gone) {
-              $window.jQuery('#hack-cancel').click();
-              $window._gone = true;
-            }
-          }, 50);
+          scope.hackFormSubmit({ allow: false });
         }
 
         updateAccepted();
 
         return txdata;
-      });
-    }
-
-    function determinePermissions(session) {
-      // get token from url param
-      scope.token = $stateParams.token;
-
-      return selectAccount(session.account.id).then(function (/*txdata*/) {
-        scope.accounts = session.accounts.slice(0);
-
-        scope.accounts.push({
-          displayName: 'Create New Account'
-        , new: true
-        });
-
-        scope.accounts.forEach(function (acc, i) {
-          if (!acc.displayName) {
-            acc.displayName = acc.email || ('Account #' + (i + 1));
-          }
-        });
-
-        scope.selectedAccount = session.account;
-        scope.previousAccount = session.account;
-        scope.updateScope();
-      }, function (err) {
-        if (/logged in/.test(err.message)) {
-          return StSession.destroy().then(function () {
-            init();
-          });
-        }
-        console.error("ERROR somewhere in oauth process");
-        console.log(err);
-        window.alert(err.message);
       });
     }
 
@@ -211,20 +165,82 @@ angular.module('yololiumApp')
       window.location.href = redirectUri;
     }
 
+    function initAccount(session) {
+      return LdsApiRequest.getAccountSummaries(session).then(function (accounts) {
+        var account = LdsApiSession.selectAccount(session);
+        var profile;
+
+        scope.accounts = accounts.map(function (account) {
+          return account.profile.me;
+        });
+        accounts.some(function (a) {
+          if (LdsApiSession.getId(a) === LdsApiSession.getId(account)) {
+            profile = a.profile;
+            a.selected = true;
+            return true;
+          }
+        });
+
+        if (profile.me.photos[0]) {
+          if (!profile.me.photos[0].appScopedId) {
+            // TODO fix API to ensure corrent id
+            profile.me.photos[0].appScopedId = profile.me.appScopedId || profile.me.app_scoped_id;
+          }
+        }
+        profile.me.photo = profile.me.photos[0] && LdsApiRequest.photoUrl(account, profile.me.photos[0], 'medium');
+        scope.account = profile.me;
+
+        scope.token = $stateParams.token;
+
+        /*
+        scope.accounts.push({
+          displayName: 'Login as a different user'
+        , new: true
+        });
+        */
+
+        //return determinePermissions(session, account);
+        return getAccountPermissions(account).then(function () {
+          // do nothing?
+          scope.selectedAccount = session; //.account;
+          scope.previousAccount = session; //.account;
+          scope.updateScope();
+        }, function (err) {
+          if (/logged in/.test(err.message)) {
+            return LdsApiSession.destroy().then(function () {
+              init();
+            });
+          }
+
+          if ('E_INVALID_TRANSACTION' === err.code) {
+            window.alert(err.message);
+            return;
+          }
+
+          console.warn("ERROR somewhere in oauth process");
+          console.warn(err);
+          window.alert(err.message);
+        });
+      });
+    }
+
     function init() {
       scope.iframe = isIframe();
 
       if (scope.iframe) {
-        return StSession.read().then(function (session) {
-          if (session && session.accounts && session.accounts.length) {
-            return determinePermissions(session);
+        return LdsApiSession.checkSession().then(function (session) {
+          if (session.accounts.length) {
+            // TODO make sure this fails / notifies
+            return initAccount(session);
           } else {
+            // TODO also notify to bring to front
             redirectToFailure();
           }
         });
       }
 
-      return StSession.ensureSession(
+      // session means both login(s) and account(s)
+      return LdsApiSession.requireSession(
         // role
         null
         // TODO login opts (these are hypothetical)
@@ -235,8 +251,27 @@ angular.module('yololiumApp')
         // TODO account opts
       , { verify: ['email', 'phone']
         }
-      ).then(determinePermissions);
+      ).then(initAccount);
     }
 
     init();
+
+    // I couldn't figure out how to get angular to bubble the event
+    // and the oauth2orize framework didn't seem to work with json form uploads
+    // so I dropped down to quick'n'dirty jQuery to get it all to work
+    scope.hackFormSubmit = function (opts) {
+      scope.submitting = true;
+      scope.cancelHack = !opts.allow;
+
+      // give time for the apply to take place
+      $timeout(function () {
+        $window.jQuery('form.js-hack-hidden-form').submit();
+      }, 50);
+    };
+    scope.allowHack = function () {
+      scope.hackFormSubmit({ allow: true });
+    };
+    scope.rejectHack = function () {
+      scope.hackFormSubmit({ allow: false });
+    };
   }]);

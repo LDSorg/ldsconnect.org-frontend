@@ -56,6 +56,27 @@ angular.module('yololiumApp', [
         }
       })
 
+      .state('logout', {
+        url: '/logout/:callback'
+      , views: {
+          body: {
+            template: ''
+            // DestroySessionController
+          , controller: [
+              '$window'
+            , 'LdsApiSession'
+            , function ($window, LdsApiSession) {
+              LdsApiSession.destroy().then(function () {
+                var callback = $stateParams.callback
+                $window.location.href = '/oauth3.html?close=true&callback=' + callback;
+              });
+            }]
+          , controllerAs: 'DSC'
+          }
+        }
+
+      })
+
       .state('authorization-dialog', {
         url: '/authorize/:token/'
       , views: {
