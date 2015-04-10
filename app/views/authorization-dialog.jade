@@ -5,46 +5,46 @@
       method="POST"
       action="https://beta.lds.io/api/oauth3/authorization_decision"
     )
-      div(ng-if="O.error.message")
-        .alert.alert-danger {{ O.error.message }}
+      div(ng-if="ADC.error.message")
+        .alert.alert-danger {{ ADC.error.message }}
         .alert.alert-danger
           pre
-            code {{ O.rawResponse | json }}
-      div(ng-if="O.invalids.length")
+            code {{ ADC.rawResponse | json }}
+      div(ng-if="ADC.invalids.length")
         .alert.alert-danger
           span The application provided invalid scope.
           ul
-            li(ng-repeat="invalid in O.invalids")
+            li(ng-repeat="invalid in ADC.invalids")
               pre
                 code {{ invalid | json }}
 
       //- TODO auto-update on change
-      input(type="hidden" name="transaction_id" ng-value="O.transactionId")
-      input(type="hidden" name="accepted_scope" ng-value="O.acceptedString")
-      input(type="hidden" name="granted_scope" ng-value="O.grantedString")
-      input(type="hidden" name="pending_scope" ng-value="O.pendingString")
-      input(type="hidden" name="selected_account_id" ng-value="O.selectedAccountId")
+      input(type="hidden" name="transaction_id" ng-value="ADC.transactionId")
+      input(type="hidden" name="accepted_scope" ng-value="ADC.acceptedString")
+      input(type="hidden" name="granted_scope" ng-value="ADC.grantedString")
+      input(type="hidden" name="pending_scope" ng-value="ADC.pendingString")
+      input(type="hidden" name="selected_account_id" ng-value="ADC.selectedAccountId")
       .form-group.mar0
         div.agents
           .col-xs-6.agent
-            img(ng-src="{{ O.selectedAccount.avatar || '/images/avatar-64px.png' }}")
-            .form-group(ng-if="O.accounts.length > 1")
-            span {{ O.selectedAccount.displayName || 'Johnny Errororeaefefsa' }}
+            img(ng-src="{{ ADC.selectedAccount.avatar || '/images/avatar-64px.png' }}")
+            .form-group(ng-if="ADC.accounts.length > 1")
+            span {{ ADC.selectedAccount.displayName || 'Johnny Errororeaefefsa' }}
 
           .col-xs-6.agent
-            img(ng-src="{{ O.client.logo || '/images/app-icon-64px.png' }}")
-            span {{ O.client.title || 'Error: No App Title' }}
+            img(ng-src="{{ ADC.client.logo || '/images/app-icon-64px.png' }}")
+            span {{ ADC.client.title || 'Error: No App Title' }}
 
 
         select.form-control.choose-account(
-          ng-model="O.selectedAccount"
-          ng-options="acc as acc.displayName for acc in O.accounts"
-          ng-change="O.updateScope()"
-          ng-if="O.accounts.length>1"
+          ng-model="ADC.selectedAccount"
+          ng-options="acc as acc.displayName for acc in ADC.accounts"
+          ng-change="ADC.updateScope()"
+          ng-if="ADC.accounts.length>1"
         )
-        div(ng-if="!O.pendingScope.length")
+        div(ng-if="!ADC.pendingScope.length")
           div.permission-request
-            span.app-name{{ O.appName || "App Name" }}
+            span.app-name{{ ADC.appName || "App Name" }}
             |&nbsp;is great because it will have the power to:
             ul.permission-list
               .checkbox
@@ -61,36 +61,36 @@
                   | update your profile information
 
 
-        div(ng-if="O.pendingScope.length")
+        div(ng-if="ADC.pendingScope.length")
           div.permission-request
-            span.app-name{{ O.appName || "App Name" }}
+            span.app-name{{ ADC.appName || "App Name" }}
             |&nbsp;will verify that you have an LDS account but doesn't gain access to any of your information.  That means no spam, and no spying on your info.  It's pretty safe :)
 
-        .col-xs-12(ng-if="O.pendingScope.length")
-          .checkbox(ng-repeat="scope in O.pendingScope")
+        .col-xs-12(ng-if="ADC.pendingScope.length")
+          .checkbox(ng-repeat="scope in ADC.pendingScope")
             label
               input(
-                ng-change="O.updateScope()"
+                ng-change="ADC.updateScope()"
                 ng-model="scope.accepted"
                 ng-disabled="!scope.acceptable"
                 type="checkbox"
               )
               |  {{ scope.name }}
 
-        .col-xs-12(ng-if="O.iframe")
+        .col-xs-12(ng-if="ADC.iframe")
           .alert.alert-danger
             p To prevent click-jacking the user may not interact with the authorize dialog in an iFrame.
             p If you supply no scope, or the scope has already been granted, you will receive a token.
             p Otherwise the error callback will be called.
 
-        .form-group.actions(ng-if="!O.iframe")
+        .form-group.actions(ng-if="!ADC.iframe")
           input#hack-cancel.btn.btn-default(
             name="cancel"
             value="Reject"
             type="submit"
-            ng-disabled="O.invalids.length || O.error"
+            ng-disabled="ADC.invalids.length || ADC.error"
           )
           button.btn.btn-primary(
             type="submit"
-            ng-disabled="O.invalids.length || O.error"
+            ng-disabled="ADC.invalids.length || ADC.error"
           ) Yes, Allow

@@ -8,7 +8,7 @@
  * Controller of the yololiumApp
  */
 angular.module('yololiumApp')
-  .controller('OauthCtrl', [ 
+  .controller('AuthorizationDialogController', [ 
     '$window'
   , '$location'
   , '$q'

@@ -56,12 +56,12 @@ angular.module('yololiumApp', [
         }
       })
 
-      .state('oauth', {
+      .state('authorization-dialog', {
         url: '/authorize/:token/'
       , views: {
           body: {
-            templateUrl: 'views/oauth.html'
-          , controller: 'OauthCtrl as O'
+            templateUrl: 'views/authorization-dialog.html'
+          , controller: 'AuthorizationDialogController as ADC'
           }
         }
       })
