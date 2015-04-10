@@ -38,14 +38,20 @@ angular.module('yololiumApp')
     console.log("profile", profile);
 
     scope.markAsChecked = function () {
-      return $http.post(LdsApiConfig.providerUri + '/api/ldsio/' + account.id + '/mark-as-checked').then(function (resp) {
+      console.log('account');
+      console.log(account);
+      return $http.post(
+        LdsApiConfig.providerUri + '/api/ldsio/' + account.id + '/mark-as-checked'
+      , null
+      , { headers: { 'Authorization': 'Bearer ' + account.token } }
+      ).then(function (resp) {
         if (!resp.data || resp.data.error || !resp.data.success) {
           scope.flashMessage = (resp.data && resp.data.error) || "Failed to mark account as checked.";
           scope.flashMessageClass = 'alert-danger';
           return;
         }
 
-        account.checkedAt = parseInt(Date.now() / 1000, 10);
+        account.userVerifiedAt = new Date().toISOString();
 
         // pass back anything?
         return $modalInstance.close();

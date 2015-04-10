@@ -79,7 +79,8 @@ angular.module('yololiumApp')
       var fresh;
       
       // TODO ISO timestamps
-      fresh = (Date.now()/1000) - parseInt(account.checkedAt||0, 10) < recheckTime;
+      console.log('the account > account', account);
+      fresh = Date.now() - (new Date(account.userVerifiedAt).valueOf()) < recheckTime;
       if (fresh) {
         return $q.when(account);
       }

@@ -103,6 +103,7 @@ angular.module('yololiumApp')
 
     function onLdsLogin(ldsSession) {
       console.log('onLdsLogin');
+      console.log(ldsSession);
       // TODO if there is not a default account, show user-switching screen
       // this will close both on user/pass and social login
       return LdsApiRequest.profile(ldsSession).then(function (profile) {
