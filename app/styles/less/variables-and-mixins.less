@@ -1,8 +1,26 @@
+/*------------------------------------*\
+*
+*  #VARIABLES
+*
+\*------------------------------------*/
 @gray: #999;
-@nice-blue: #5B83AD;
-@light-blue: @nice-blue + #111;
+@gray-light: #f7f7f7;
+
+@blue: #1E9CE5;
+@light-blue: @blue + #111;
+
+@small-screen:  600px;
+@medium-screen: 768px;
+@large-screen:  1382px;
 
 
+
+
+/*------------------------------------*\
+*
+*  #MIXINS
+*
+\*------------------------------------*/
 .transition(@transition...) {
   -webkit-transition: @transition;
           transition: @transition;
