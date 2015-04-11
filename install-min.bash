@@ -71,6 +71,7 @@ echo ""
 
 echo "3. Then open up the JAVASCRIPT CONSOLE and set the backend to lds.io:"
 echo ""
-echo "    localStorage.setItem('baseUrl', 'https://lds.io');"
+echo "    LdsIo.storage.set('providerUrl', 'https://lds.io');"
+echo "    LdsIo.storage.set('realProviderUrl', 'https://local.ldsconnect.org');"
 echo ""
 echo ""
