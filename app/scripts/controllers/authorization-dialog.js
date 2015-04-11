@@ -34,7 +34,7 @@ angular.module('yololiumApp')
     ['log', 'warn', 'info', 'error'].forEach(function (key) {
       console['old-' + key] = console[key];
       console[key] = function (msg) {
-        console['old-' + key]('[ldsconnect.org] [authorization-dialog] ' + msg);
+        console['old-' + key]('[ldsconnect.org] [authorization-dialog]', msg);
       };
     });
 
@@ -50,7 +50,9 @@ angular.module('yololiumApp')
 
     // TODO move into config
     var scopeMessages = {
-      me: "View Stake and Ward Directories"
+      directories: "View Stake and Ward Directories"
+    , me: "View your own LDS Account"
+    , '*': "Use the Full Developer API"
     };
 
     function updateAccepted() {
@@ -128,12 +130,16 @@ angular.module('yololiumApp')
         scope.pendingString = (txdata.pendingString || '').trim();
         scope.pendingScope = [];
 
-        scope.grantedScope = scope.grantedArr.map(scopeStrToObj);
+        scope.grantedScope = scope.grantedArr.filter(function (value) {
+          return value;
+        }).map(scopeStrToObj);
         if (scope.pendingString) {
           scope.pendingScope = txdata.pendingArr.filter(function (value) {
             if ('!' !== value) {
               return true;
             }
+            // TODO fix server such that empty strings are not sent
+            return value;
           }).map(scopeStrToObj);
         } else if (txdata.granted) {
           scope.hackFormSubmit({ allow: true });
