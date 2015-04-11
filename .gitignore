@@ -2,6 +2,7 @@
 migrations/migrations.js
 less.css
 main.css
+client-config.*
 
 dist
 .tmp

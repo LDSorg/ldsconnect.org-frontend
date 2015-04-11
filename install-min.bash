@@ -19,10 +19,11 @@ git clone https://github.com/LDSorg/local.ldsconnect.org-certificates.git \
   > /dev/null
 tree -I .git ./certs
 
-echo "Cloning the Frontend and Creating ./public link"
+echo "Cloning the Frontend, Creating ./public link and sample app/scripts/client-config.js"
 git clone https://github.com/LDSorg/ldsconnect.org-frontend.git \
   ./frontend \
   > /dev/null
+rsync -av frontend/app/scripts/client-config.sample.js frontend/app/scripts/client-config.js
 ln -s 'frontend/app' ./public
 
 echo "Installing NPMs (this will take several seconds, maybe a minute)..."
