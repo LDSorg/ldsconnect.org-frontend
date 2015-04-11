@@ -64,10 +64,11 @@ angular.module('yololiumApp', [
             // DestroySessionController
           , controller: [
               '$window'
+            , '$stateParams'
             , 'LdsApiSession'
-            , function ($window, LdsApiSession) {
+            , function ($window, $stateParams, LdsApiSession) {
               LdsApiSession.destroy().then(function () {
-                var callback = $stateParams.callback
+                var callback = $stateParams.callback;
                 $window.location.href = '/oauth3.html?close=true&callback=' + callback;
               });
             }]
