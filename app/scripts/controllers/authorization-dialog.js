@@ -31,12 +31,6 @@ angular.module('yololiumApp')
     , LdsApiSession
     , LdsApiRequest
     ) {
-    ['log', 'warn', 'info', 'error'].forEach(function (key) {
-      console['old-' + key] = console[key];
-      console[key] = function (msg) {
-        console['old-' + key]('[ldsconnect.org] [authorization-dialog]', msg);
-      };
-    });
 
     var scope = this;
 
@@ -86,7 +80,7 @@ angular.module('yololiumApp')
         }
 
         if (resp.data.error) {
-          console.error('resp.data');
+          console.error('[ldsconnect.org] [authorization-dialog] resp.data');
           console.log(resp.data);
           scope.error = resp.data.error;
           scope.rawResponse = resp.data;
@@ -94,7 +88,7 @@ angular.module('yololiumApp')
         }
 
         if ('string' !== typeof resp.data.pendingString) {
-          console.error('resp.data (TODO look for redirect uri)');
+          console.error('[ldsconnect.org] [authorization-dialog] resp.data (TODO look for redirect uri)');
           console.log(resp.data);
           scope.error = { message: "missing scope request" };
           scope.rawResponse = resp.data;
@@ -223,7 +217,7 @@ angular.module('yololiumApp')
             return;
           }
 
-          console.warn("ERROR somewhere in oauth process");
+          console.warn("[ldsconnect.org] [authorization-dialog] ERROR somewhere in oauth process");
           console.warn(err);
           window.alert(err.message);
         });
@@ -268,6 +262,8 @@ angular.module('yololiumApp')
     scope.hackFormSubmit = function (opts) {
       scope.submitting = true;
       scope.cancelHack = !opts.allow;
+      scope.authorizationDecisionUri = LdsApiConfig.providerUri + '/api/oauth3/authorization_decision';
+      $window.jQuery('form.js-hack-hidden-form').attr('action', scope.authorizationDecisionUri);
 
       // give time for the apply to take place
       $timeout(function () {
