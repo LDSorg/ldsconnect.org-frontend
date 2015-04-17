@@ -263,6 +263,8 @@ angular.module('yololiumApp')
       scope.submitting = true;
       scope.cancelHack = !opts.allow;
       scope.authorizationDecisionUri = LdsApiConfig.providerUri + '/api/oauth3/authorization_decision';
+      scope.updateScope();
+
       $window.jQuery('form.js-hack-hidden-form').attr('action', scope.authorizationDecisionUri);
 
       // give time for the apply to take place
