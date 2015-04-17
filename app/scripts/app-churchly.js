@@ -57,7 +57,7 @@ angular.module('yololiumApp', [
       })
 
       .state('logout', {
-        url: '/logout/:callback'
+        url: '/logout/:browserState'
       , views: {
           body: {
             template: ''
@@ -68,8 +68,8 @@ angular.module('yololiumApp', [
             , 'LdsApiSession'
             , function ($window, $stateParams, LdsApiSession) {
               LdsApiSession.destroy().then(function () {
-                var callback = $stateParams.callback;
-                $window.location.href = '/oauth3.html?close=true&callback=' + callback;
+                var state = $stateParams.browserState;
+                $window.location.href = '/oauth3.html#logout_callback=true&state=' + state;
               });
             }]
           , controllerAs: 'DSC'
@@ -163,10 +163,8 @@ angular.module('yololiumApp', [
   , function ($rootScope, $timeout, $q, $http, $modal, LdsApi, LdsApiSession) {
 
   return LdsApi.init({
-    // TODO dedicated root app
     appId: 'TEST_ID_871a371debefb91c919ca848'
-  //  appId: 'ID__329d57138a2ddbe291eea77780fe'
-  , appVersion: '2.0.0-pre'
+  , appVersion: '2.1.0'
   , invokeLogin: function (opts) {
       console.info('login invoked');
       return $modal.open({
